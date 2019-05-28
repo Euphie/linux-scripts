@@ -26,7 +26,7 @@ restart_sshd()
 }
 
 #update system pack
-yum_update(){
+update_yum(){
     yum -y install wget net-tools lrzsz gcc gcc-c++ make cmake libxml2-devel openssl-devel curl curl-devel unzip sudo ntp libaio-devel wget vim ncurses-devel autoconf automake zlib-devel  python-devel
     yum -y install epel-release
 #    cd /etc/yum.repos.d/
@@ -107,7 +107,6 @@ net.ipv4.tcp_keepalive_time = 1200
 net.ipv4.ip_local_port_range = 1024 65535
 EOF
     /sbin/sysctl -p
-    echo "sysctl set OK!!"
 }
 
 #disable selinux
@@ -115,7 +114,6 @@ init_selinux_config()
 {
     sed -i '/SELINUX/s/enforcing/disabled/' /etc/selinux/config
     setenforce 0
-    echo "selinux is disable"
 }
 
 init_iptables_config()
@@ -146,7 +144,7 @@ EOF
     /sbin/service iptables restart
 }
 
-init_host_name()
+set_host_name()
 {
     cat > /etc/hosts << EOF
 127.0.0.1   localhost ${HOST_NAME} ${HOST_NAME}.euphie.me
@@ -177,14 +175,14 @@ EOF
 
 init()
 {
-    yum_update
-    zone_time
+    update_yum
+    init_zone_time
     init_ulimit_config
     init_sshd_config
     init_sysctl_config
     init_selinux_config
     init_iptables_config
-    init_host_name
+    set_host_name
     install_docker
 }
 
@@ -192,7 +190,7 @@ if [ "$1" = "change_network" ] ; then
     IF_NAME="${2:-ens33}"
 fi
 
-if [ "$1" = "init_host_name" ] ; then
+if [ "$1" = "set_host_name" ] ; then
     HOST_NAME="${2:-vm}"
 fi
 
