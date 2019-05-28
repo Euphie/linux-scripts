@@ -69,7 +69,7 @@ init_sshd_config()
 init_sysctl_config()
 {
     cat > /etc/sysctl.conf << EOF
-net.ipv4.ip_forward = 0
+net.ipv4.ip_forward = 1
 net.ipv4.conf.default.rp_filter = 1
 net.ipv4.conf.default.accept_source_route = 0
 kernel.sysrq = 0
@@ -205,6 +205,7 @@ EOF
     kubeadm init --pod-network-cidr=10.244.0.0/16 --service-cidr=10.96.0.0/12 --image-repository=gcr.azk8s.cn/google_containers --ignore-preflight-errors=Swap
 }
 
+# chmod +x init_centos7.sh && ./init_centos7.sh init && ./init_centos7.sh install_docker && ./init_centos7.sh install_k8s
 help()
 {
     echo "Usage: $0
@@ -244,7 +245,7 @@ if [ "$1" = "set_host_name" ] ; then
 fi
 
 if [ "$1" = "" ] || [ "$1" = "init" ] ; then
-    HOST_NAME="${1:-vm}"
+    HOST_NAME="${2:-vm}"
 fi
 
 ${1:-help}
