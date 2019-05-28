@@ -10,9 +10,6 @@ if [[ "$(whoami)" != "root" ]]; then
     exit 1
 fi
 
-echo -e "\033[31m 这个是centos7系统初始化脚本，请慎重运行！ 5秒后开始执行！press ctrl+C to cancel \033[0m"
-# sleep 5
-
 #changes network interface to ONBOOT=YES
 change_network()
 {
@@ -71,7 +68,6 @@ init_sshd_config()
 #set sysctl
 init_sysctl_config()
 {
-    cp /etc/sysctl.conf /et/sysctl.conf.bak
     cat > /etc/sysctl.conf << EOF
 net.ipv4.ip_forward = 0
 net.ipv4.conf.default.rp_filter = 1
@@ -93,7 +89,6 @@ net.core.rmem_default = 8388608
 net.core.rmem_max = 16777216
 net.core.wmem_max = 16777216
 net.core.netdev_max_backlog = 262144
-net.core.somaxconn = 262144
 net.ipv4.tcp_max_orphans = 3276800
 net.ipv4.tcp_max_syn_backlog = 262144
 net.ipv4.tcp_timestamps = 0
@@ -156,8 +151,19 @@ EOF
     hostnamectl set-hostname ${HOST_NAME}
 }
 
+disable_firewall()
+{
+    systemctl stop firewalld.service
+    systemctl disable firewalld.service
+    systemctl stop iptables.service
+    systemctl disable iptables.service
+}
+
 install_docker()
 {
+    init_selinux_config
+    disable_firewall
+    mkdir /etc/docker/
     yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
     yum install -y docker-ce
     cat > /etc/docker/daemon.json << EOF
@@ -169,12 +175,56 @@ install_docker()
     "insecure-registries": ["harbor.euphie.me:60200"]
 }
 EOF
-    sudo systemctl start docker
-    sudo systemctl enable docker
+    systemctl start docker
+    systemctl enable docker
+}
+
+install_k8s()
+{
+    init_selinux_config
+    disable_firewall
+    cat > /etc/yum.repos.d/kubernetes.repo << EOF
+[kubernetes]
+name=Kubernetes
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
+exclude=kube*
+EOF
+    yum -y repolist
+    yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+    cat > /etc/sysctl.d/k8s.conf << EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+    sysctl --system
+    swapoff -a
+    sed -i 's?/dev/mapper/centos-swap?#/dev/mapper/centos-swap?' /etc/fstab
+    kubeadm init --pod-network-cidr=10.244.0.0/16 --service-cidr=10.96.0.0/12 --image-repository=gcr.azk8s.cn/google_containers --ignore-preflight-errors=Swap
+}
+
+help()
+{
+    echo "Usage: $0
+    init|
+    update_yum|
+    init_zone_time|
+    init_ulimit_config|
+    init_sshd_config|
+    init_sysctl_config|
+    init_selinux_config|
+    init_iptables_config|
+    set_host_name|
+    install_docker|
+    install_k8s"
 }
 
 init()
 {
+    echo -e "\033[31m This is a centos7 system initialization script, please run carefully! It will start execution after 5 seconds! Press Ctrl+C to cancel. \033[0m"
+    # sleep 5
     update_yum
     init_zone_time
     init_ulimit_config
@@ -183,7 +233,6 @@ init()
     init_selinux_config
     init_iptables_config
     set_host_name
-    install_docker
 }
 
 if [ "$1" = "change_network" ] ; then
@@ -198,4 +247,4 @@ if [ "$1" = "" ] || [ "$1" = "init" ] ; then
     HOST_NAME="${1:-vm}"
 fi
 
-${1:-init}
+${1:-help}
