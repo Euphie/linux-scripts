@@ -32,9 +32,9 @@ init_yum(){
 init_zone_time()
 {
     cp  /usr/share/zoneinfo/Asia/Hong_Kong  /etc/localtime
-    printf 'ZONE="Asia/Hong_Kong"\nUTC=false\nARC=false' > /etc/sysconfig/clock
+    echo 'ZONE="Asia/Hong_Kong"\nUTC=false\nARC=false' > /etc/sysconfig/clock
     /usr/sbin/ntpdate pool.ntp.org
-    echo "* */5 * * * /usr/sbin/ntpdate pool.ntp.org > /dev/null 2>&1" >> /var/spool/cron/root;chmod 600 /var/spool/cron/root
+    echo "* */5 * * * /usr/sbin/ntpdate pool.ntp.org > /dev/null 2>&1" > /var/spool/cron/root;chmod 600 /var/spool/cron/root
     echo 'LANG="en_US.UTF-8"' > /etc/sysconfig/i18n
     source  /etc/sysconfig/i18n
 }
@@ -130,6 +130,7 @@ init_iptables_config()
 -A syn-flood -j REJECT --reject-with icmp-port-unreachable
 COMMIT
 EOF
+    sleep 1
     /sbin/service iptables restart
 }
 
@@ -241,7 +242,7 @@ if [ "$1" = "set_host_name" ] ; then
 fi
 
 if [ "$1" = "install_k8s" ] ; then
-    ROLE="${2:-master}"
+    ROLE="${2:-node}"
 fi
 
 if [ "$1" = "" ] || [ "$1" = "init_system" ] ; then
