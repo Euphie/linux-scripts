@@ -201,7 +201,7 @@ EOF
     fi
 }
 
-# chmod +x init_centos7.sh && ./init_centos7.sh init && ./init_centos7.sh install_docker && ./init_centos7.sh install_k8s
+# chmod +x init_centos7.sh && ./init_centos7.sh init_system && ./init_centos7.sh install_docker && ./init_centos7.sh install_k8s
 help()
 {
     echo "Usage: $0
