@@ -134,6 +134,20 @@ EOF
     /sbin/service iptables restart
 }
 
+init_ipvs()
+{
+    cat > /etc/sysconfig/modules/ipvs.modules << EOF
+#!/bin/bash
+modprobe -- ip_vs
+modprobe -- ip_vs_rr
+modprobe -- ip_vs_wrr
+modprobe -- ip_vs_sh
+modprobe -- nf_conntrack_ipv4
+EOF
+    chmod 755 /etc/sysconfig/modules/ipvs.modules
+    /etc/sysconfig/modules/ipvs.modules
+}
+
 set_host_name()
 {
     cat > /etc/hosts << EOF
@@ -191,6 +205,8 @@ EOF
     yum -y repolist
     yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
     cat > /etc/sysctl.d/k8s.conf << EOF
+vm.swappiness=0
+net.ipv4.ip_forward = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 net.bridge.bridge-nf-call-iptables = 1
 EOF
@@ -198,7 +214,8 @@ EOF
     swapoff -a
     sed -i 's?/dev/mapper/centos-swap?#/dev/mapper/centos-swap?' /etc/fstab
     if [ "$ROLE" = "master" ] ; then
-        kubeadm init --pod-network-cidr=10.244.0.0/16 --service-cidr=10.96.0.0/12 --image-repository=gcr.azk8s.cn/google_containers --ignore-preflight-errors=Swap
+        kubeadm init --pod-network-cidr=10.244.0.0/16 --service-cidr=10.96.0.0/12 --image-repository=gcr.azk8s.cn/google_containers
+        kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
     fi
 }
 
@@ -214,6 +231,7 @@ help()
     init_sysctl_config|
     init_selinux_config|
     init_iptables_config|
+    init_ipvs|
     set_host_name [host_name]|
     install_docker|
     install_k8s [role]"
@@ -230,6 +248,7 @@ init_system()
     init_sysctl_config
     init_selinux_config
     init_iptables_config
+    init_ipvs
     set_host_name
 }
 
