@@ -10,8 +10,8 @@ if [[ "$(whoami)" != "root" ]]; then
     exit 1
 fi
 
-#changes network interface to ONBOOT=YES
-change_network()
+#set network interface to ONBOOT=YES
+set_network()
 {
     sed -i '/ONBOOT/s#no#yes#' /etc/sysconfig/network-scripts/ifcfg-${IF_NAME}
     /etc/init.d/network restart
@@ -22,16 +22,10 @@ restart_sshd()
     service sshd restart
 }
 
-#update system pack
-update_yum(){
+#install system pack
+init_yum(){
     yum -y install wget net-tools lrzsz gcc gcc-c++ make cmake libxml2-devel openssl-devel curl curl-devel unzip sudo ntp libaio-devel wget vim ncurses-devel autoconf automake zlib-devel  python-devel
     yum -y install epel-release
-#    cd /etc/yum.repos.d/
-#    mkdir bak
-#    mv ./*.repo bak
-#    wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
-#    wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
-#    yum clean all && yum makecache
 }
 
 #set ntp
@@ -202,31 +196,33 @@ EOF
     sysctl --system
     swapoff -a
     sed -i 's?/dev/mapper/centos-swap?#/dev/mapper/centos-swap?' /etc/fstab
-    kubeadm init --pod-network-cidr=10.244.0.0/16 --service-cidr=10.96.0.0/12 --image-repository=gcr.azk8s.cn/google_containers --ignore-preflight-errors=Swap
+    if [ "$ROLE" = "master" ] ; then
+        kubeadm init --pod-network-cidr=10.244.0.0/16 --service-cidr=10.96.0.0/12 --image-repository=gcr.azk8s.cn/google_containers --ignore-preflight-errors=Swap
+    fi
 }
 
 # chmod +x init_centos7.sh && ./init_centos7.sh init && ./init_centos7.sh install_docker && ./init_centos7.sh install_k8s
 help()
 {
     echo "Usage: $0
-    init|
-    update_yum|
+    init_system|
+    init_yum|
     init_zone_time|
     init_ulimit_config|
     init_sshd_config|
     init_sysctl_config|
     init_selinux_config|
     init_iptables_config|
-    set_host_name|
+    set_host_name [host_name]|
     install_docker|
-    install_k8s"
+    install_k8s [role]"
 }
 
-init()
+init_system()
 {
     echo -e "\033[31m This is a centos7 system initialization script, please run carefully! It will start execution after 5 seconds! Press Ctrl+C to cancel. \033[0m"
     # sleep 5
-    update_yum
+    init_yum
     init_zone_time
     init_ulimit_config
     init_sshd_config
@@ -236,7 +232,7 @@ init()
     set_host_name
 }
 
-if [ "$1" = "change_network" ] ; then
+if [ "$1" = "set_network" ] ; then
     IF_NAME="${2:-ens33}"
 fi
 
@@ -244,7 +240,11 @@ if [ "$1" = "set_host_name" ] ; then
     HOST_NAME="${2:-vm}"
 fi
 
-if [ "$1" = "" ] || [ "$1" = "init" ] ; then
+if [ "$1" = "install_k8s" ] ; then
+    ROLE="${2:-master}"
+fi
+
+if [ "$1" = "" ] || [ "$1" = "init_system" ] ; then
     HOST_NAME="${2:-vm}"
 fi
 
