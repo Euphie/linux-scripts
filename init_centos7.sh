@@ -168,6 +168,13 @@ disable_firewall()
     systemctl disable iptables.service
 }
 
+update_kernel()
+{
+    rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+    rpm -Uvh http://www.elrepo.org/elrepo-release-7.0-2.el7.elrepo.noarch.rpm
+    yum --enablerepo=elrepo-kernel install kernel-ml -y
+}
+
 install_docker()
 {
     init_selinux_config
