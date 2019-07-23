@@ -1,6 +1,8 @@
-# scripts
+# Scripts
 
 ## init_centos7.sh
+
+* wget https://raw.githubusercontent.com/Euphie/scripts/master/init_centos7.sh && chmod +x init_centos7.sh
 
 ```
 Usage: ./init_centos7.sh
