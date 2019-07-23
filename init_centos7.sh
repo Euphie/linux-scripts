@@ -197,6 +197,12 @@ EOF
     systemctl enable docker
 }
 
+install_docker_compose()
+{
+    sudo curl -L "https://github.com/docker/compose/releases/download/1.25.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    sudo chmod +x /usr/local/bin/docker-compose
+}
+
 install_k8s()
 {
     init_selinux_config
@@ -244,6 +250,7 @@ help()
     update_kernel|
     set_host_name [host_name]|
     install_docker|
+    install_docker_compose|
     install_k8s [role]"
 }
 

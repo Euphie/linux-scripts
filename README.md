@@ -18,5 +18,6 @@ Usage: ./init_centos7.sh
     update_kernel|
     set_host_name [host_name]|
     install_docker|
+    install_docker_compose|
     install_k8s [role]
 ```
