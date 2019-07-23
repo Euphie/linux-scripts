@@ -239,6 +239,7 @@ help()
     init_selinux_config|
     init_iptables_config|
     init_ipvs|
+    update_kernel|
     set_host_name [host_name]|
     install_docker|
     install_k8s [role]"
