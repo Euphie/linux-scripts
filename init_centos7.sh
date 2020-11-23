@@ -186,11 +186,7 @@ install_docker()
     yum install -y docker-ce
     cat > /etc/docker/daemon.json << EOF
 {
-    "bip": "10.10.9.1/24",
-    "default-gateway": "10.10.9.2",
-    "fixed-cidr": "10.10.9.100/26",
-    "registry-mirrors": ["https://26en6bei.mirror.aliyuncs.com"],
-    "insecure-registries": ["harbor.euphie.me:60200"]
+    "registry-mirrors": ["https://26en6bei.mirror.aliyuncs.com"]
 }
 EOF
     systemctl start docker
