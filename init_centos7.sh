@@ -24,7 +24,7 @@ restart_sshd()
 
 #install system pack
 init_yum(){
-    yum -y install wget net-tools lrzsz gcc gcc-c++ make cmake libxml2-devel openssl-devel curl curl-devel unzip sudo ntp libaio-devel wget vim ncurses-devel autoconf automake zlib-devel  python-devel git
+    yum -y install yum-utils wget net-tools lrzsz gcc gcc-c++ make cmake libxml2-devel openssl-devel curl curl-devel unzip sudo ntp libaio-devel wget vim ncurses-devel autoconf automake zlib-devel  python-devel git
     yum -y install epel-release
 }
 
