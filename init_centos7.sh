@@ -182,8 +182,8 @@ install_docker()
     init_selinux_config
     disable_firewall
     mkdir /etc/docker/
-    yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
-    yum install -y docker-ce
+    yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+    yum install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     cat > /etc/docker/daemon.json << EOF
 {
     "registry-mirrors": ["https://26en6bei.mirror.aliyuncs.com"]
